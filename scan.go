@@ -4,12 +4,13 @@ import (
 	"context"
 	// "fmt"
 	"time"
+	"strconv"
 
 	"github.com/Ullaakut/nmap/v3"
 )
 
 type Scan struct {
-	Address nmap.Address
+	Ip string
 	Ports []nmap.Port
 	Hostname string
 	Timestamp time.Time
@@ -17,7 +18,7 @@ type Scan struct {
 
 func NewScan(host nmap.Host, hostname string) Scan {
 	return Scan {
-		Address: host.Addresses[0],
+		Ip: host.Addresses[0].String(),
 		Ports: host.Ports,
 		Hostname: hostname,
 		Timestamp: time.Now(),
@@ -27,7 +28,7 @@ func NewScan(host nmap.Host, hostname string) Scan {
 //Split the /24 into 16 subnets
 //scan each subnet every half hour
 //store results in db
-func Poll(db *ConcurrentMap[Scan]) {
+func Poll(db *ConcurrentMap) {
 	ranges := []string{
 		"127.0.0.0/28",
 		"127.0.0.16/28",
@@ -49,7 +50,7 @@ func Poll(db *ConcurrentMap[Scan]) {
 	
 	for {
 		for _, cidr := range ranges {
-			ipMap := make(map[string]Scan)
+			tempMap := make(map[string][]Scan)
 			run, _ := nmapScan(cidr)
 
 			for _, host := range run.Hosts {
@@ -57,16 +58,49 @@ func Poll(db *ConcurrentMap[Scan]) {
 					continue
 				}
 
-				hostname, _ := Lookup(host.Addresses[0].String())
-				ipMap[host.Addresses[0].String()] = NewScan(host, hostname)
-				// fmt.Println(host.Addresses)
+				// hostname, _ := Lookup(host.Addresses[0].String())
+				hostname := ""
+				tempMap[host.Addresses[0].String()] = []Scan{NewScan(host, hostname)}
+
+				addPortsIpToMap(&tempMap, NewScan(host, hostname))
+				addDomainToMap(&tempMap, NewScan(host, hostname))
+				addServiceToMap(&tempMap, NewScan(host, hostname))
 			}
 
-			db.MassWrite(&ipMap)
+			db.MassWrite(&tempMap)
 			time.Sleep(30 * time.Minute)
 		}
 	}
+}
 
+func addPortsIpToMap(tempMap *map[string][]Scan, scan Scan) {
+	for _, port := range scan.Ports {
+		portStr := strconv.Itoa(int(port.ID))
+		if _, ok := (*tempMap)[portStr]; !ok {
+			(*tempMap)[portStr] = []Scan{}
+		} else {
+			(*tempMap)[portStr] = append((*tempMap)[portStr], scan)
+		}
+	}
+}
+
+func addDomainToMap(tempMap *map[string][]Scan, scan Scan) {
+	if _, ok := (*tempMap)[scan.Hostname]; !ok {
+		(*tempMap)[scan.Hostname] = []Scan{}
+	} else {
+		(*tempMap)[scan.Hostname] = append((*tempMap)[scan.Hostname], scan)
+	}
+}
+
+func addServiceToMap(tempMap *map[string][]Scan, scan Scan) {
+	for _, port := range scan.Ports {
+		service := port.Service
+		if _, ok := (*tempMap)[service.Name]; !ok {
+			(*tempMap)[service.Name] = []Scan{}
+		} else {
+			(*tempMap)[service.Name] = append((*tempMap)[service.Name], scan)
+		}
+	}
 }
 
 func nmapScan(target ...string) (nmap.Run, error) {
@@ -80,7 +114,7 @@ func nmapScan(target ...string) (nmap.Run, error) {
 		// nmap.WithMostCommonPorts(1000),
 		// nmap.WithCustomArguments("-p-"),
 		// nmap.WithFastMode(),
-		// nmap.WithPorts("80,443,843"),
+		nmap.WithPorts("80,443,843"),
 	)
 	
 	if err != nil {

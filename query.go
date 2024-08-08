@@ -19,7 +19,7 @@ var portRe *regexp.Regexp = regexp.MustCompile(`^port:`)
 var domainRe *regexp.Regexp = regexp.MustCompile(`^domain:`)
 var serviceRe *regexp.Regexp = regexp.MustCompile(`^service:`)
 
-func query(params string, db *ConcurrentMap[Scan]) ([]Scan, error) {
+func query(params string, db *ConcurrentMap) ([]Scan, error) {
 
 	queries := strings.Split(params, " ")
 

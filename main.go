@@ -11,7 +11,10 @@ import (
 
 func main() {
 	// query("domain:example.com port:22 ip:8.8.8.8/24")
-	db := NewConcurrentMap[Scan]()
+	db := NewConcurrentMap()
+	testPoll(db)
+
+
 	
 	// go Poll(db)
 	// for {
@@ -33,10 +36,10 @@ func main() {
 	// 	fmt.Println("Sleeping for 5 seconds...")
 	// 	time.Sleep(5 * time.Second)
 	// }
-	serv(":3000", db)
+	// serv(":3000", db)
 }
 
-func serv(port string, db *ConcurrentMap[Scan]) {
+func serv(port string, db *ConcurrentMap) {
 	app := fiber.New()
 
 	app.Get("/", func(c *fiber.Ctx) error {
@@ -99,5 +102,32 @@ func printHosts(result nmap.Run) {
 // 		var s int = rand.Intn(10)
 // 		m.Write("0", i)
 // 		time.Sleep(time.Duration(s) * time.Second)
+// 	}
+// }
+//
+// func testPoll(db *ConcurrentMap) {
+// 	run, _ := nmapScan("google.com", "facebook.com", "netflix.com")
+//
+// 	tempMap := make(map[string][]Scan)
+// 	for _, host := range run.Hosts {
+// 		if len(host.Addresses) == 0 {
+// 			continue
+// 		}
+//
+// 		hostname := ""
+// 		tempMap[host.Addresses[0].String()] = []Scan{NewScan(host, hostname)}
+// 		addPortsIpToMap(&tempMap, NewScan(host, hostname))
+// 		addDomainToMap(&tempMap, NewScan(host, hostname))
+// 		addServiceToMap(&tempMap, NewScan(host, hostname))
+// 	}
+//
+// 	db.MassWrite(&tempMap)
+// 	d := db.ReadAll()
+//
+// 	for k, v := range d {
+// 		fmt.Println(k)
+// 			for _, i := range v {
+// 				fmt.Println("\t" + i.Ip)
+// 			}
 // 	}
 // }
