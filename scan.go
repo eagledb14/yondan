@@ -9,14 +9,16 @@ import (
 )
 
 type Scan struct {
-	Nmap nmap.Host
+	Address nmap.Address
+	Ports []nmap.Port
 	Hostname string
 	Timestamp time.Time
 }
 
 func NewScan(host nmap.Host, hostname string) Scan {
 	return Scan {
-		Nmap: host,
+		Address: host.Addresses[0],
+		Ports: host.Ports,
 		Hostname: hostname,
 		Timestamp: time.Now(),
 	}

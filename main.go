@@ -10,7 +10,8 @@ import (
 )
 
 func main() {
-	// db := NewConcurrentMap[Scan]()
+	// query("domain:example.com port:22 ip:8.8.8.8/24")
+	db := NewConcurrentMap[Scan]()
 	
 	// go Poll(db)
 	// for {
@@ -32,21 +33,29 @@ func main() {
 	// 	fmt.Println("Sleeping for 5 seconds...")
 	// 	time.Sleep(5 * time.Second)
 	// }
-	serv(":3000")
+	serv(":3000", db)
 }
 
-func serv(port string) {
+func serv(port string, db *ConcurrentMap[Scan]) {
 	app := fiber.New()
 
 	app.Get("/", func(c *fiber.Ctx) error {
 		c.Set("Content-Type", "text/html")
-		return c.SendString(template.BuildPage(template.Index("192.168.8.3")))
+		return c.SendString(template.BuildPage(template.Index(),"192.168.8.3"))
 	})
 
 	app.Get("/logout", func(c *fiber.Ctx) error {
 		return c.SendString("gottem")
 	})
 
+	app.Get("/search", func(c *fiber.Ctx) error {
+		params := c.Query("query")
+
+		query(params, db)
+
+		c.Set("Content-Type", "text/html")
+		return c.SendString(template.BuildPage("", params))
+	})
 
 	app.Static("/favicon.ico", "./resources/favicon.ico")
 	app.Static("/htmx", "./resources/htmx.js")
