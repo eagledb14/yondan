@@ -19,7 +19,7 @@ func Lookup(target string) (string, error) {
 	}
 
 	hostname := strings.Split(outSplit[1], "\n")
-	if len(outSplit) < 2 {
+	if len(outSplit) == 0 {
 		return "", errors.New("Host Not Found")
 	}
 	return hostname[0], nil

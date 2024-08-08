@@ -2,17 +2,32 @@ package main
 
 import (
 	"fmt"
-	"github.com/Ullaakut/nmap/v3"
-	"github.com/gofiber/fiber/v2"
+	"time"
+
 	"github.com/eagledb14/shodan-clone/template"
+	"github.com/gofiber/fiber/v2"
 	// "math/rand"
 	// "time"
 )
 
 func main() {
-	// query("domain:example.com port:22 ip:8.8.8.8/24")
+
 	db := NewConcurrentMap()
-	testPoll(db)
+	// testPoll(db)
+	db.Write("127.0.0.1", Scan{"127.0.0.1", nil, "example.com", time.Now()})
+	db.Write("127.0.0.37", Scan{"127.0.0.1", nil, "example.com", time.Now()})
+	db.Write("127.0.0.102", Scan{"127.0.0.1", nil, "example.com", time.Now()})
+	db.Write("127.0.0.230", Scan{"127.0.0.1", nil, "example.com", time.Now()})
+	db.Write("monkey.com", Scan{"127.0.0.1", nil, "example.com", time.Now()})
+	// query("domain:example.com port:22 ip:8.8.8.8/24")
+	// fmt.Println(db.Read("127.0.0.1"))
+	fmt.Println(query("127.0.0.0/0", db))
+	// fmt.Println(ParseCidr("142.250.9.0/24", db))
+	
+	// tempMap := make(map[string][]Scan)
+	// addDomainToMap(&tempMap, Scan{"127.0.0.1", []nmap.Port{}, "example.com", time.Now()})
+	// fmt.Println(tempMap)
+
 
 
 	
@@ -68,22 +83,6 @@ func serv(port string, db *ConcurrentMap) {
 	app.Listen(port)
 }
 
-func printHosts(result nmap.Run) {
-	for _, host := range result.Hosts {
-		if len(host.Ports) == 0 || len(host.Addresses) == 0 {
-			continue
-		}
-
-		fmt.Printf("Host %q:\n", host.Addresses[0])
-
-		for _, port := range host.Ports {
-			fmt.Printf("\tPort %d/%s %s %s\n", port.ID, port.Protocol, port.State, port.Service.Name)
-		}
-	}
-
-	fmt.Printf("Nmap done: %d hosts up scanned in %.2f seconds\n", len(result.Hosts), result.Stats.Finished.Elapsed)
-}
-
 // func test() {
 // 	m := NewConcurrentMap[int]()
 // 	m.Write("0", 1)
@@ -105,29 +104,18 @@ func printHosts(result nmap.Run) {
 // 	}
 // }
 //
-// func testPoll(db *ConcurrentMap) {
-// 	run, _ := nmapScan("google.com", "facebook.com", "netflix.com")
-//
-// 	tempMap := make(map[string][]Scan)
-// 	for _, host := range run.Hosts {
-// 		if len(host.Addresses) == 0 {
-// 			continue
-// 		}
-//
-// 		hostname := ""
-// 		tempMap[host.Addresses[0].String()] = []Scan{NewScan(host, hostname)}
-// 		addPortsIpToMap(&tempMap, NewScan(host, hostname))
-// 		addDomainToMap(&tempMap, NewScan(host, hostname))
-// 		addServiceToMap(&tempMap, NewScan(host, hostname))
-// 	}
-//
-// 	db.MassWrite(&tempMap)
-// 	d := db.ReadAll()
-//
-// 	for k, v := range d {
-// 		fmt.Println(k)
-// 			for _, i := range v {
-// 				fmt.Println("\t" + i.Ip)
-// 			}
-// 	}
-// }
+func testPoll(db *ConcurrentMap) {
+	// Poll([]string{"google.com", "facebook.com", "netflix.com"}, db)
+	go func() {
+		Poll([]string{"127.0.0.1"}, db, 0)
+	}()
+	time.Sleep(20 * time.Second)
+	d := db.ReadAll()
+
+	for k, v := range d {
+		fmt.Println("'" + k + "'")
+			for _, i := range v {
+				fmt.Println("\t" + i.Ip)
+			}
+	}
+}

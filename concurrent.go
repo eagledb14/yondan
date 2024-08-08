@@ -26,7 +26,7 @@ func (c *ConcurrentMap) Read(target string) ([]Scan, error) {
 
 	run, ok := c.data[target]
 	if !ok {
-		return nil, errors.New("Target Not Found")
+		return nil, errors.New("Target Not Found: ")
 	}
 	return run, nil
 }
@@ -40,8 +40,13 @@ func (c *ConcurrentMap) ReadAll() map[string][]Scan {
 
 func (c *ConcurrentMap) append(target string, scan Scan) {
 	if _, ok := c.data[target]; ok {
-		for _, v := range c.data[target] {
+		for i, v := range c.data[target] {
+			if target == "" {
+				continue
+			}
 			if v.Ip == scan.Ip {
+				c.data[target] = append(c.data[target][:i], c.data[target][i+1:]...)
+				c.data[target] = append(c.data[target], scan)
 				return
 			}
 		}
