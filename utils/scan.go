@@ -121,7 +121,6 @@ func nmapScan(target ...string) (nmap.Run, error) {
 		// nmap.WithCustomArguments("-p-"),
 		// nmap.WithFastMode(),
 		// nmap.WithPorts("80,443,843"),
-		nmap.WithPorts("8084"),
 	)
 	
 	if err != nil {

@@ -207,6 +207,7 @@ body {
     color: white;
     width: 100%;
     margin-top: 75px;
+    margin-bottom: 100px;
 }
 
 .host-grid .one-item-left {
@@ -365,6 +366,7 @@ a svg {
     display: grid;
     place-items: center;
     grid-template-columns: repeat(6, 1fr);
+    grid-row-gap: 10px;
 }
 
 .port-grid a {
@@ -372,7 +374,46 @@ a svg {
     color: white;
 }
 
-
 .highlight {
     background-color: var(--gray);
+}
+
+.subheader {
+    font-size: 0.9em;
+    color: white
+}
+
+.large-data {
+    font-size: 2.5em;
+    color: gray;
+}
+
+.display-port-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 10px;
+    text-decoration: none;
+    color: gray;
+    margin: 5px 0;
+    margin-left: 10px;
+}
+
+.scan-display {
+    margin-bottom: 20px;
+    border-bottom: 1px solid gray;
+    padding: 10px;
+}
+
+.scan-display a {
+    text-decoration: none;
+    background-color: var(--light-gray);
+    color: white;
+    font-size: 1.5em;
+    padding: 4px;
+}
+
+.scan-display .item {
+    margin-left: 10px;
+    font-size: 0.8em;
+    color: gray;
 }

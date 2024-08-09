@@ -25,16 +25,15 @@ func Query(params string, db *ConcurrentMap) ([]Scan, error) {
 		return nil, errors.New("No queries provided")
 	}
 
-	if cidrRe.MatchString(queries[0]) {
-		return parseCidr(queries[0], db), nil
-	}
-
 	queryScans := [][]Scan{}
 
 	re := regexp.MustCompile(`[,:]`)
 	for _, q := range queries {
 		res := []Scan{}
-		if netRe.MatchString(q) {
+
+		if cidrRe.MatchString(q){
+			res = parseCidr(q, db)
+		} else if netRe.MatchString(q) {
 			res = parseNet(re.Split(q, -1), db)
 		} else if queryRe.MatchString(q) {
 			res = parseQuery(re.Split(q, -1), db)
@@ -131,8 +130,3 @@ func parseQuery(params []string, db *ConcurrentMap) []Scan {
 
 	return scans
 }
-
-// func parseDomain(params []string) []Scan {
-// 	// return fmt.Sprintf("%v", params)
-// 	return nil
-// }
