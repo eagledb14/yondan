@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Ullaakut/nmap/v3"
 	"github.com/eagledb14/shodan-clone/template"
+	"github.com/eagledb14/shodan-clone/utils"
 	"github.com/gofiber/fiber/v2"
 	// "math/rand"
 	// "time"
@@ -12,9 +14,9 @@ import (
 
 func main() {
 
-	db := NewConcurrentMap()
+	db := utils.NewConcurrentMap()
 	// testPoll(db)
-	// db.Write("127.0.0.1", Scan{"127.0.0.1", nil, "example.com", time.Now()})
+	db.Write("127.0.0.1", utils.Scan{"127.0.0.1", []nmap.Port{{ID: 22, Protocol:"tcp"}, {ID:80, Protocol:"udp"}, {ID:8084, Protocol:"TCP", Service: nmap.Service{Name:"Form"}}}, "example.com", time.Now().Format("2006-01-02")})
 	// db.Write("127.0.0.37", Scan{"127.0.0.1", nil, "example.com", time.Now()})
 	// db.Write("127.0.0.102", Scan{"127.0.0.1", nil, "example.com", time.Now()})
 	// db.Write("127.0.0.230", Scan{"127.0.0.1", nil, "example.com", time.Now()})
@@ -61,7 +63,7 @@ func main() {
 	serv(":3000", db)
 }
 
-func serv(port string, db *ConcurrentMap) {
+func serv(port string, db *utils.ConcurrentMap) {
 	app := fiber.New()
 
 	app.Get("/", func(c *fiber.Ctx) error {
@@ -77,20 +79,31 @@ func serv(port string, db *ConcurrentMap) {
 		c.Set("Content-Type", "text/html")
 		params := c.Query("query")
 
-		scans, _ := query(params, db)
+		scans, _ := utils.Query(params, db)
 		_ = scans
 
 		if len(scans) == 0 {
-			//return missing page, or not avaialable page
 			return c.SendString(template.BuildPage(template.Missing(), params))
 		} else if len(scans) == 1 {
-			//redirect host page
+			c.Redirect("/host/" + scans[0].Ip)
 		} else {
 			//return search page
 		}
 
 		c.Set("Content-Type", "text/html")
 		return c.SendString(template.BuildPage("", params))
+	})
+
+	app.Get("/host/:ip", func(c *fiber.Ctx) error {
+		c.Set("Content-Type", "text/html")
+		ip := c.Params("ip")
+
+		scan, err := db.Read(ip)
+		if err != nil || len(scan) != 1 {
+			return c.SendString(template.BuildPage(template.Missing(), ip))
+		}
+
+		return c.SendString(template.BuildPage(template.Host(scan[0], db), ""))
 	})
 
 	app.Static("/favicon.ico", "./resources/favicon.ico")
@@ -122,12 +135,12 @@ func serv(port string, db *ConcurrentMap) {
 // 	}
 // }
 //
-func testPoll(db *ConcurrentMap) {
+func testPoll(db *utils.ConcurrentMap) {
 	// Poll([]string{"google.com", "facebook.com", "netflix.com"}, db)
 	go func() {
-		Poll([]string{"127.0.0.1"}, db, 0)
+		utils.Poll([]string{"127.0.0.1"}, db, 0)
 	}()
-	time.Sleep(20 * time.Second)
+	time.Sleep(10 * time.Second)
 	d := db.ReadAll()
 
 	for k, v := range d {

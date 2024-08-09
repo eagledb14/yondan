@@ -65,6 +65,19 @@ func Banner(searchIP string) string {
                     let input = document.getElementById('search').value
                     window.location.href = '/search?query=' + encodeURIComponent(input)
                 })
+
+                document.addEventListener('keydown', function(event) {
+                    const searchBox = document.getElementById('search')
+                    if (event.key ==='/' && document.activeElement !== searchBox) {
+                        event.preventDefault()
+                        searchBox.focus()
+                    }
+                    if (event.key === 'Enter' && document.activeElement === searchBox) {
+                        event.preventDefault(); 
+                        let input = document.getElementById('search').value
+                        window.location.href = '/search?query=' + encodeURIComponent(input)
+                    }
+                })
             </script>
         </div>
     </div>
@@ -80,15 +93,6 @@ func header() string {
             <script src="/htmx"></script>
             <link rel="icon" type="image/png" href="/favicon.ico"/>
             <link rel="stylesheet" type="text/css" href="/styles.css">
-            <script>
-                document.addEventListener('keydown', function(event) {
-                    if (event.key ==='/') {
-                        event.preventDefault()
-                        const searchBox = document.getElementById('search')
-                        searchBox.focus()
-                    }
-                })
-            </script>
         </head>
         `
 }

@@ -82,7 +82,12 @@ func Index() string {
                             <tr>
                                 <th>domain</th>
                                 <td>Domain name pulled from DNS records</td>
-                                <td><a href="/search?query=domain%3Agoogle.com">Put Something Here</a></td>
+                                <td><a href="/search?query=domain%3Aexample.com">Example.com</a></td>
+                            </tr>
+                            <tr>
+                                <th>service</th>
+                                <td>Types of services running on differen ports</td>
+                                <td><a href="/search?query=service%3Ahttp">HTTPS Services</a></td>
                             </tr>
         
                         </tbody>

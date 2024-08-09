@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"errors"
@@ -17,7 +17,7 @@ var cidrRe *regexp.Regexp = regexp.MustCompile(`^([0-9]{1,3}\.){3}[0-9]{1,3}(\/(
 var netRe *regexp.Regexp = regexp.MustCompile(`^net:`)
 var queryRe *regexp.Regexp = regexp.MustCompile(`^[a-zA-z]+`)
 
-func query(params string, db *ConcurrentMap) ([]Scan, error) {
+func Query(params string, db *ConcurrentMap) ([]Scan, error) {
 
 	queries := strings.Split(params, " ")
 

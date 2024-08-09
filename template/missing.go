@@ -20,7 +20,6 @@ func Missing() string {
             </div>
             <div></div>
         </div>
-
         `
 
     return indexPage

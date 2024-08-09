@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"context"
@@ -12,7 +12,7 @@ type Scan struct {
 	Ip string
 	Ports []nmap.Port
 	Hostname string
-	Timestamp time.Time
+	Timestamp string
 }
 
 func NewScan(host nmap.Host, hostname string) Scan {
@@ -20,7 +20,7 @@ func NewScan(host nmap.Host, hostname string) Scan {
 		Ip: host.Addresses[0].String(),
 		Ports: host.Ports,
 		Hostname: hostname,
-		Timestamp: time.Now(),
+		Timestamp: time.Now().Format("2006-01-02"),
 	}
 }
 
@@ -45,6 +45,7 @@ func Poll(ranges []string, db *ConcurrentMap, timeoutMinutes int) {
 				addPortsIpToMap(&tempMap, NewScan(host, hostname))
 				addDomainToMap(&tempMap, NewScan(host, hostname))
 				addServiceToMap(&tempMap, NewScan(host, hostname))
+				addProtocolToMap(&tempMap, NewScan(host, hostname))
 			}
 
 			db.MassWrite(&tempMap)
@@ -98,6 +99,16 @@ func addServiceToMap(tempMap *map[string][]Scan, scan Scan) {
 	}
 }
 
+func addProtocolToMap(tempMap *map[string][]Scan, scan Scan) {
+	for _, port := range scan.Ports {
+		protocol := port.Protocol
+		if protocol == "" {
+			continue
+		}
+		(*tempMap)[protocol] = append((*tempMap)[protocol], scan)
+	}
+}
+
 func nmapScan(target ...string) (nmap.Run, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
@@ -110,7 +121,7 @@ func nmapScan(target ...string) (nmap.Run, error) {
 		// nmap.WithCustomArguments("-p-"),
 		// nmap.WithFastMode(),
 		// nmap.WithPorts("80,443,843"),
-		nmap.WithPorts("7731"),
+		nmap.WithPorts("8084"),
 	)
 	
 	if err != nil {
