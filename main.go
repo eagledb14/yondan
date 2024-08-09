@@ -18,13 +18,17 @@ func main() {
 	db.Write("127.0.0.37", Scan{"127.0.0.1", nil, "example.com", time.Now()})
 	db.Write("127.0.0.102", Scan{"127.0.0.1", nil, "example.com", time.Now()})
 	db.Write("127.0.0.230", Scan{"127.0.0.1", nil, "example.com", time.Now()})
-	db.Write("monkey.com", Scan{"127.0.0.1", nil, "example.com", time.Now()})
+	db.Write("example.com", Scan{"127.0.0.1", nil, "example.com", time.Now()})
 	db.Write("80", Scan{"127.0.0.1", nil, "example.com", time.Now()})
+
+	fmt.Println(query("domain:example.com net:127.0.0.1", db))
+	// fmt.Println(query("domain:example", db))
+
 	// query("domain:example.com port:22 ip:8.8.8.8/24")
 	// fmt.Println(db.Read("127.0.0.1"))
 	// fmt.Println(query("net:127.0.0.0/0", db))
-	fmt.Println(query("port:80", db))
-	fmt.Println(query("domain:monkey.com", db))
+	// fmt.Println(query("port:80", db))
+	// fmt.Println(query("domain:monkey.com", db))
 	// fmt.Println(ParseCidr("142.250.9.0/24", db))
 	
 	// tempMap := make(map[string][]Scan)
@@ -72,7 +76,16 @@ func serv(port string, db *ConcurrentMap) {
 	app.Get("/search", func(c *fiber.Ctx) error {
 		params := c.Query("query")
 
-		query(params, db)
+		scans, _ := query(params, db)
+		_ = scans
+
+		if len(scans) == 0 {
+			//return missing page, or not avaialable page
+		} else if len(scans) == 1 {
+			//return host page
+		} else {
+			//return search page
+		}
 
 		c.Set("Content-Type", "text/html")
 		return c.SendString(template.BuildPage("", params))
