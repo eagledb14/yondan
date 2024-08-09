@@ -89,7 +89,6 @@ func Index() string {
                     </table>
                 </div>
             </div>
-
         </div>
         `
 

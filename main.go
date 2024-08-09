@@ -14,14 +14,14 @@ func main() {
 
 	db := NewConcurrentMap()
 	// testPoll(db)
-	db.Write("127.0.0.1", Scan{"127.0.0.1", nil, "example.com", time.Now()})
-	db.Write("127.0.0.37", Scan{"127.0.0.1", nil, "example.com", time.Now()})
-	db.Write("127.0.0.102", Scan{"127.0.0.1", nil, "example.com", time.Now()})
-	db.Write("127.0.0.230", Scan{"127.0.0.1", nil, "example.com", time.Now()})
-	db.Write("example.com", Scan{"127.0.0.1", nil, "example.com", time.Now()})
-	db.Write("80", Scan{"127.0.0.1", nil, "example.com", time.Now()})
+	// db.Write("127.0.0.1", Scan{"127.0.0.1", nil, "example.com", time.Now()})
+	// db.Write("127.0.0.37", Scan{"127.0.0.1", nil, "example.com", time.Now()})
+	// db.Write("127.0.0.102", Scan{"127.0.0.1", nil, "example.com", time.Now()})
+	// db.Write("127.0.0.230", Scan{"127.0.0.1", nil, "example.com", time.Now()})
+	// db.Write("example.com", Scan{"127.0.0.1", nil, "example.com", time.Now()})
+	// db.Write("80", Scan{"127.0.0.1", nil, "example.com", time.Now()})
 
-	fmt.Println(query("domain:example.com net:127.0.0.1", db))
+	// fmt.Println(query("domain:example.com net:127.0.0.1", db))
 	// fmt.Println(query("domain:example", db))
 
 	// query("domain:example.com port:22 ip:8.8.8.8/24")
@@ -58,7 +58,7 @@ func main() {
 	// 	fmt.Println("Sleeping for 5 seconds...")
 	// 	time.Sleep(5 * time.Second)
 	// }
-	// serv(":3000", db)
+	serv(":3000", db)
 }
 
 func serv(port string, db *ConcurrentMap) {
@@ -66,7 +66,7 @@ func serv(port string, db *ConcurrentMap) {
 
 	app.Get("/", func(c *fiber.Ctx) error {
 		c.Set("Content-Type", "text/html")
-		return c.SendString(template.BuildPage(template.Index(),"192.168.8.3"))
+		return c.SendString(template.BuildPage(template.Index(), ""))
 	})
 
 	app.Get("/logout", func(c *fiber.Ctx) error {
@@ -74,6 +74,7 @@ func serv(port string, db *ConcurrentMap) {
 	})
 
 	app.Get("/search", func(c *fiber.Ctx) error {
+		c.Set("Content-Type", "text/html")
 		params := c.Query("query")
 
 		scans, _ := query(params, db)
@@ -81,8 +82,9 @@ func serv(port string, db *ConcurrentMap) {
 
 		if len(scans) == 0 {
 			//return missing page, or not avaialable page
+			return c.SendString(template.BuildPage(template.Missing(), params))
 		} else if len(scans) == 1 {
-			//return host page
+			//redirect host page
 		} else {
 			//return search page
 		}
