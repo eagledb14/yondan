@@ -18,7 +18,8 @@ import (
 
 func main() {
 	db := utils.NewConcurrentMap()
-	createTestData("127.0.0.0/20", db)
+	// createTestData("127.0.0.0/20", db)
+	createTestData("0.0.0.0/16", db)
 	// testPoll(db)
 	
 	// go Poll(db)
@@ -93,11 +94,11 @@ func createTestData(cidr string, db *utils.ConcurrentMap) {
 		ports := []nmap.Port{}
 
 		for range portNum {
-			num := rand.Intn(65655)
-			ports = append(ports, nmap.Port{ID: uint16(num), State: nmap.State{State: "open"}, Service: nmap.Service{Name: "http"}})
+			num := rand.Intn(1000)
+			ports = append(ports, nmap.Port{ID: uint16(num), State: nmap.State{State: "open"}, Service: nmap.Service{Name: getRandomCode()}})
 		}
 		
-		newScan := utils.Scan{Ip: ip.String(), Ports: ports, Hostname: "example.com", Timestamp: time.Now().Format("2006-01-02")}
+		newScan := utils.Scan{Ip: ip.String(), Ports: ports, Hostname: getRandomCode(), Timestamp: time.Now().Format("2006-01-02")}
 
 		db.Write(ip.String(), newScan)
 		db.Write(newScan.Hostname, newScan)
@@ -115,4 +116,13 @@ func incrementIP(ip net.IP) {
 			break
 		}
 	}
+}
+
+func getRandomCode() string {
+	letters := "abcdefghijklmnopqrstuvwxyz"
+	out := ""
+
+	out += string(letters[rand.Intn(len(letters))])
+	out += string(letters[rand.Intn(len(letters))])
+	return out
 }

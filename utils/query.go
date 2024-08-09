@@ -26,6 +26,7 @@ func Query(params string, db *ConcurrentMap) ([]Scan, error) {
 	}
 
 	queryScans := [][]Scan{}
+	queryCount := 0
 
 	re := regexp.MustCompile(`[,:]`)
 	for _, q := range queries {
@@ -33,22 +34,28 @@ func Query(params string, db *ConcurrentMap) ([]Scan, error) {
 
 		if cidrRe.MatchString(q){
 			res = parseCidr(q, db)
+			queryCount++
 		} else if netRe.MatchString(q) {
-			res = parseNet(re.Split(q, -1), db)
+			params := re.Split(q, -1)
+			queryCount += len(params) - 1
+			res = parseNet(params, db)
 		} else if queryRe.MatchString(q) {
-			res = parseQuery(re.Split(q, -1), db)
+			params := re.Split(q, -1)
+			queryCount += len(params) - 1
+			res = parseQuery(params, db)
 		} else {
-			res = parseString(re.Split(q, -1), db)
+			params := re.Split(q, -1)
+			queryCount += len(params) - 1
+			res = parseString(params, db)
 		}
 		queryScans = append(queryScans, res)
 	}
 
-	return filter(queryScans, db), nil
+	return filter(queryScans, queryCount, db), nil
 }
 
-func filter(scans [][]Scan, db *ConcurrentMap) []Scan {
+func filter(scans [][]Scan, queryCount int, db *ConcurrentMap) []Scan {
 	ipCount := map[string]int{}
-	scanCount := len(scans)
 
 	for _, scan := range scans {
 		for _, s := range scan {
@@ -58,7 +65,7 @@ func filter(scans [][]Scan, db *ConcurrentMap) []Scan {
 
 	filteredScans := []Scan{}
 	for key, value := range ipCount {
-		if value == scanCount {
+		if value == queryCount {
 			scan, err := db.Read(key)
 			if err != nil {
 				continue
