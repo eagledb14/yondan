@@ -28,50 +28,27 @@ func NewScan(host nmap.Host, hostname string) Scan {
 //scan each subnet every half hour
 //store results in db
 func Poll(ranges []string, db *ConcurrentMap, timeoutMinutes int) {
-	for {
-		for _, cidr := range ranges {
-			tempMap := make(map[string][]Scan)
-			run, _ := nmapScan(cidr)
+	for _, cidr := range ranges {
+		tempMap := make(map[string][]Scan)
+		run, _ := nmapScan(cidr)
 
-			for _, host := range run.Hosts {
-				if len(host.Addresses) == 0 {
-					continue
-				}
-
-				// hostname, _ := Lookup(host.Addresses[0].String())
-				hostname := ""
-				tempMap[host.Addresses[0].String()] = []Scan{NewScan(host, hostname)}
-
-				addPortsIpToMap(&tempMap, NewScan(host, hostname))
-				addDomainToMap(&tempMap, NewScan(host, hostname))
-				addServiceToMap(&tempMap, NewScan(host, hostname))
-				addProtocolToMap(&tempMap, NewScan(host, hostname))
+		for _, host := range run.Hosts {
+			if len(host.Addresses) == 0 {
+				continue
 			}
 
-			db.MassWrite(&tempMap)
-			time.Sleep(time.Duration(timeoutMinutes) * time.Minute)
-		}
-	}
-}
+			// hostname := ""
+			hostname, _ := Lookup(host.Addresses[0].String())
+			tempMap[host.Addresses[0].String()] = []Scan{NewScan(host, hostname)}
 
-func GetRanges() []string {
-	return []string{
-		"127.0.0.0/28",
-		"127.0.0.16/28",
-		"127.0.0.32/28",
-		"127.0.0.48/28",
-		"127.0.0.64/28",
-		"127.0.0.80/28",
-		"127.0.0.96/28",
-		"127.0.0.112/28",
-		"127.0.0.128/28",
-		"127.0.0.144/28",
-		"127.0.0.160/28",
-		"127.0.0.176/28",
-		"127.0.0.192/28",
-		"127.0.0.208/28",
-		"127.0.0.224/28",
-		"127.0.0.240/28",
+			addPortsIpToMap(&tempMap, NewScan(host, hostname))
+			addDomainToMap(&tempMap, NewScan(host, hostname))
+			addServiceToMap(&tempMap, NewScan(host, hostname))
+			addProtocolToMap(&tempMap, NewScan(host, hostname))
+		}
+
+		db.MassWrite(&tempMap)
+		time.Sleep(time.Duration(timeoutMinutes) * time.Minute)
 	}
 }
 

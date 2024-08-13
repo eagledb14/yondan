@@ -15,7 +15,7 @@ import (
 
 var cidrRe *regexp.Regexp = regexp.MustCompile(`^([0-9]{1,3}\.){3}[0-9]{1,3}(\/([0-9]|[1-2][0-9]|3[0-2]))?`)
 var netRe *regexp.Regexp = regexp.MustCompile(`^net:`)
-var queryRe *regexp.Regexp = regexp.MustCompile(`^[a-zA-z]+`)
+var queryRe *regexp.Regexp = regexp.MustCompile(`^[a-zA-z]+:.*`)
 
 func Query(params string, db *ConcurrentMap) ([]Scan, error) {
 
@@ -44,9 +44,8 @@ func Query(params string, db *ConcurrentMap) ([]Scan, error) {
 			queryCount += len(params) - 1
 			res = parseQuery(params, db)
 		} else {
-			params := re.Split(q, -1)
-			queryCount += len(params) - 1
-			res = parseString(params, db)
+			queryCount ++
+			res = parseString(q, db)
 		}
 		queryScans = append(queryScans, res)
 	}
@@ -111,14 +110,13 @@ func parseNet(params []string, db *ConcurrentMap) []Scan {
 	return scans
 }
 
-func parseString(params []string, db *ConcurrentMap) []Scan {
+func parseString(params string, db *ConcurrentMap) []Scan {
 	scans := []Scan{}
 	index := db.ReadAll()
-	for _, p := range params[1:] {
-		for key, value := range index {
-			if strings.Contains(key, p) {
-				scans = append(scans, value...)
-			}
+
+	for key, value := range index {
+		if strings.Contains(key, params) {
+			scans = append(scans, value...)
 		}
 	}
 

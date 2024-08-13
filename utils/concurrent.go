@@ -3,6 +3,7 @@ package utils
 import (
 	"sync"
 	"errors"
+	"strings"
 )
 
 // Writes probably won't scale well when getting to larger ip spaces, but it should be good enough for a /24
@@ -78,4 +79,20 @@ func (c *ConcurrentMap) Delete(target string) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	delete(c.data, target)
+}
+
+func (c *ConcurrentMap) String() string {
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
+
+	out := strings.Builder{}
+	for key, value := range c.data {
+		out.WriteString(key + ":\n")
+		for _, v := range value {
+			out.WriteString("\t" + v.Ip + "\n")
+		}
+		out.WriteString("\n")
+	}
+
+	return out.String()
 }
