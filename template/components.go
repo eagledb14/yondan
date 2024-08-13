@@ -91,7 +91,7 @@ func header() string {
         <head>
             <title>Yondan Search Engine</title>
             <script src="/htmx"></script>
-            <link rel="shortcut icon" type="image/png" href="/favicon.ico"/>
+            <link rel="icon" type="image/png" href="/favicon.png"/>
             <link rel="stylesheet" type="text/css" href="/styles.css">
         </head>
         `

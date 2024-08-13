@@ -100,7 +100,7 @@ func serv(port string, db *utils.ConcurrentMap) {
 		return c.SendString(template.BuildPage(template.Host(scan[0], db), ip))
 	})
 
-	app.Static("/favicon.ico", "./resources/favicon.ico")
+	app.Static("/favicon.png", "./resources/favicon.png")
 	app.Static("/htmx", "./resources/htmx.js")
 	app.Static("/styles.css", "./resources/styles.css")
 	app.Static("/logo", "./resources/logo.png")
