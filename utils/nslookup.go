@@ -22,5 +22,5 @@ func Lookup(target string) (string, error) {
 	if len(outSplit) == 0 {
 		return "", errors.New("Host Not Found")
 	}
-	return hostname[0], nil
+	return hostname[0][:len(hostname[0]) - 1], nil
 }
