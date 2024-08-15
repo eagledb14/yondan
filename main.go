@@ -5,41 +5,50 @@ import (
 	"fmt"
 	"sort"
 
-	// "fmt"
-	// "math/rand"
+	"math/rand"
+	crand "crypto/rand"
 	"os"
-	// "time"
+	"time"
 
-	// "net"
+	"net"
 
-	// "github.com/Ullaakut/nmap/v3"
+	"github.com/Ullaakut/nmap/v3"
 
-	// "strconv"
+	"strconv"
 
 	"github.com/eagledb14/shodan-clone/template"
 	"github.com/eagledb14/shodan-clone/utils"
 	"github.com/gofiber/fiber/v2"
-	// "math/rand"
-	// "time"
 )
 
 func main() {
 	db := utils.NewConcurrentMap()
-	// createTestData("127.0.0.0/20", db)
-	// createTestData("0.0.0.0/16", db)
-	// testPoll(db)
+
+	dummyRanges := []string{}
+	for range 200 {
+		dummyRanges = append(dummyRanges, getRandomCidr())
+	}
 
 	ranges := readRanges()
-	go func() {
-		utils.Poll(ranges, db, 0)
-		fmt.Println(db)
-	}()
+	for _, cidr := range dummyRanges {
+		createDummyData(cidr, db)
+	}
 
 	go func() {
+		utils.Poll(ranges, db, 0)
+		fmt.Println("Full Scan Complete: db size", db.Len())
+
 		for {
-			utils.Poll(ranges, db, 30)
+			for _, cidr := range dummyRanges {
+				createDummyData(cidr, db)
+			}
+
+			utils.Poll(ranges, db, 10)
+
+			fmt.Println("Full Scan Complete: db size", db.Len())
 		}
 	}()
+
 	serv(":3000", db)
 }
 
@@ -108,60 +117,58 @@ func serv(port string, db *utils.ConcurrentMap) {
 	app.Listen(port)
 }
 
-// func testPoll(db *utils.ConcurrentMap) {
-// 	// Poll([]string{"google.com", "facebook.com", "netflix.com"}, db)
-// 	go func() {
-// 		utils.Poll([]string{"127.0.0.1"}, db, 0)
-// 	}()
-// 	time.Sleep(10 * time.Second)
-// 	d := db.ReadAll()
-//
-// 	for k, v := range d {
-// 		fmt.Println("'" + k + "'")
-// 			for _, i := range v {
-// 				fmt.Println("\t" + i.Ip)
-// 			}
-// 	}
-// }
-//
-// func createTestData(cidr string, db *utils.ConcurrentMap) {
-// 	ip, ipNet, _ := net.ParseCIDR(cidr)
-//
-// 	for ip := ip.Mask(ipNet.Mask); ipNet.Contains(ip); incrementIP(ip) {
-// 		portNum := rand.Intn(10)
-//
-// 		ports := []nmap.Port{}
-//
-// 		for range portNum {
-// 			num := rand.Intn(1000)
-// 			ports = append(ports, nmap.Port{ID: uint16(num), State: nmap.State{State: "open"}, Service: nmap.Service{Name: getRandomCode()}})
-// 		}
-// 		
-// 		newScan := utils.Scan{Ip: ip.String(), Ports: ports, Hostname: getRandomCode(), Timestamp: time.Now().Format("2006-01-02")}
-//
-// 		db.Write(ip.String(), newScan)
-// 		db.Write(newScan.Hostname, newScan)
-// 		for _, port := range newScan.Ports {
-// 			db.Write(strconv.Itoa(int(port.ID)), newScan)
-// 			db.Write(port.Service.Name, newScan)
-// 		}
-// 	}
-// }
-//
-// func incrementIP(ip net.IP) {
-// 	for i := len(ip) - 1; i >= 0; i-- {
-// 		ip[i]++
-// 		if ip[i] > 0 {
-// 			break
-// 		}
-// 	}
-// }
-//
-// func getRandomCode() string {
-// 	letters := "abcdefghijklmnopqrstuvwxyz"
-// 	out := ""
-//
-// 	out += string(letters[rand.Intn(len(letters))])
-// 	out += string(letters[rand.Intn(len(letters))])
-// 	return out
-// }
+func getRandomCidr() string {
+	ip := make([]byte, 4)
+	crand.Read(ip)
+	subnet := rand.Intn(6) + 22
+
+	ipStr := fmt.Sprintf("%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3])
+
+	cidr := fmt.Sprintf("%s/%d", ipStr, subnet)
+
+	return cidr
+}
+
+func createDummyData(cidr string, db *utils.ConcurrentMap) {
+	ip, ipNet, _ := net.ParseCIDR(cidr)
+
+	index := 0
+
+	for ip := ip.Mask(ipNet.Mask); ipNet.Contains(ip); incrementIP(ip) {
+		index++
+		portNum := rand.Intn(4) + 1
+
+		ports := []nmap.Port{}
+
+		for range portNum {
+			ports = append(ports, getRandomPort())
+		}
+		
+		newScan := utils.Scan{Ip: ip.String(), Ports: ports, Timestamp: time.Now().Format("2006-01-02")}
+
+		db.Write(ip.String(), newScan)
+		db.Write(newScan.Hostname, newScan)
+		for _, port := range newScan.Ports {
+			db.Write(strconv.Itoa(int(port.ID)), newScan)
+			db.Write(port.Service.Name, newScan)
+		}
+	}
+}
+
+func incrementIP(ip net.IP) {
+	for i := len(ip) - 1; i >= 0; i-- {
+		ip[i]++
+		if ip[i] > 0 {
+			break
+		}
+	}
+}
+
+func getRandomPort() nmap.Port {
+	names := []string{"http", "https", "telnet","ftp","ssh","smtp","rdp","pop3","microsoft-ds","netbios-ssn","imap","domain","msrpc","mysql","http-proxy","pptp","rpcbind","pop4s","imaps","vnc","nfs","submission","smux","smpts","http","unkown","printer","dc","nfs","ftps","BGP", "time","ntpd"}
+	ports := []uint16{80,443,23,21,22,25,3389,110,445,139,143,53,135,3306,8080,1723,111,995,993,5900,1025,587,199,465,8008,49152,515,2001,2049,990, 179,37,123}
+
+	randIndex := rand.Intn(len(names))
+
+	return nmap.Port{ID: ports[randIndex], State: nmap.State{State: "open"}, Service: nmap.Service{Name: names[randIndex]}}
+}

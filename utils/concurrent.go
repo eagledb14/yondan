@@ -96,3 +96,9 @@ func (c *ConcurrentMap) String() string {
 
 	return out.String()
 }
+
+func (c *ConcurrentMap) Len() int {
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
+	return len(c.data)
+}

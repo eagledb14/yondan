@@ -37,7 +37,6 @@ func Poll(ranges []string, db *ConcurrentMap, timeoutMinutes int) {
 				continue
 			}
 
-			// hostname := ""
 			hostname, _ := Lookup(host.Addresses[0].String())
 			tempMap[host.Addresses[0].String()] = []Scan{NewScan(host, hostname)}
 
@@ -94,10 +93,11 @@ func nmapScan(target ...string) (nmap.Run, error) {
 		ctx,
 		nmap.WithTargets(target...),
 		// nmap.WithCustomArguments()
-		// nmap.WithMostCommonPorts(1000),
+		// nmap.WithMostCommonPorts(500),
 		// nmap.WithCustomArguments("-p-"),
 		// nmap.WithFastMode(),
 		// nmap.WithPorts("80,443,843"),
+		// nmap.WithCustomArguments("-Pn"),
 	)
 	
 	if err != nil {

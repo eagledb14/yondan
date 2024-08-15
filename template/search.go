@@ -8,6 +8,10 @@ import (
 
 func Search(scans []utils.Scan, query string) string {
     totalScan := len(scans)
+    if query == "0.0.0.0/0" {
+        totalScan = 69420
+    }
+
     ports := sortPorts(scans)
     if len(ports) > 10 {
         ports = ports[:10]
@@ -16,6 +20,10 @@ func Search(scans []utils.Scan, query string) string {
     services := sortServices(scans)
     if len(services) > 10 {
         services = services[:10]
+    }
+
+    if len(scans) > 1000 {
+        scans = scans[:1000]
     }
 
     data := struct {
