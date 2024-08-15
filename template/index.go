@@ -18,9 +18,9 @@ func Index() string {
                         Getting Started
                     </h2>
                     <div class="fake-link">
-                        <div>What is Shodan?</div>
-                        <div>Search Query Fundamentals</div>
-                        <div>Working with Shodan Data Files</div>
+                        <a href="/missing/">What is Shodan?</a>
+                        <a href="/missing/">Search Query Fundamentals</a>
+                        <a href="/missing/">Working with Shodan Data Files</a>
                     </div>
                 </div>
                 <div class="content-box top-border red-border">
@@ -29,9 +29,9 @@ func Index() string {
                         ASCII Videos 
                     </h2>
                     <div class="fake-link">
-                        <div>Setting up Real-Time Network Monitoring</div>
-                        <div>Measuring Public SMB Exposure</div>
-                        <div>Analyzing the Vulnerabilities for a Network</div>
+                        <a href="/missing">Setting up Real-Time Network Monitoring</a>
+                        <a href="/missing">Measuring Public SMB Exposure</a>
+                        <a href="/missing">Analyzing the Vulnerabilities for a Network</a>
                     </div>
                 </div>
                 <div class="content-box top-border yellow-border">
@@ -40,9 +40,9 @@ func Index() string {
                         Developer Access
                     </h2>
                     <div class="fake-link">
-                        <div>How to Download Data with the API</div>
-                        <div>Looking up IP Information</div>
-                        <div>Working with Shodan Data Files</div>
+                        <a href="/missing">How to Download Data with the API</a>
+                        <a href="/missing">Looking up IP Information</a>
+                        <a href="/missing">Working with Shodan Data Files</a>
                     </div>
                 </div>
             </div>
@@ -54,7 +54,7 @@ func Index() string {
                             <svg class="svg-inline--fa fa-download fa-w-18 fa-fw" aria-hidden="true" focusable="false" data-prefix="far" data-icon="download" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" data-fa-i2svg=""><path fill="white" d="M528 288h-92.1l46.1-46.1c30.1-30.1 8.8-81.9-33.9-81.9h-64V48c0-26.5-21.5-48-48-48h-96c-26.5 0-48 21.5-48 48v112h-64c-42.6 0-64.2 51.7-33.9 81.9l46.1 46.1H48c-26.5 0-48 21.5-48 48v128c0 26.5 21.5 48 48 48h480c26.5 0 48-21.5 48-48V336c0-26.5-21.5-48-48-48zm-400-80h112V48h96v160h112L288 368 128 208zm400 256H48V336h140.1l65.9 65.9c18.8 18.8 49.1 18.7 67.9 0l65.9-65.9H528v128zm-88-64c0-13.3 10.7-24 24-24s24 10.7 24 24-10.7 24-24 24-24-10.7-24-24z"></path></svg>
                             Enterprice Access
                         </h2>
-                        <p class="description">Need bulk data access? Check out our enterprise offering which includes full, unlimited access to the entire Shodan platform:</p>
+                        <p class="description">Need bulk data access? Check out our enterprise offering which includes full, unlimited access to the entire Shodan platform</p>
                     </div>
                 </div>
 
@@ -72,7 +72,7 @@ func Index() string {
                             <tr>
                                 <th>net</th>
                                 <td>Network range or IP in CIDR notation</td>
-                                <td><a href="/search?query=net%3A8.8.8.8%2F24">Services in the range of 8.8.0.0 to 8.8.255.255</a></td>
+                                <td><a href="/search?query=net%3A8.8.8.8%2F24">Services in the range of 8.8.8.8 to 8.8.255.255</a></td>
                             </tr>
                             <tr>
                                 <th>port</th>
@@ -82,12 +82,17 @@ func Index() string {
                             <tr>
                                 <th>domain</th>
                                 <td>Domain name pulled from DNS records</td>
-                                <td><a href="/search?query=domain%3Aexample.com">Example.com</a></td>
+                                <td><a href="/search?query=domain%3Aexample.com">example.com</a></td>
                             </tr>
                             <tr>
                                 <th>service</th>
                                 <td>Types of services running on differen ports</td>
                                 <td><a href="/search?query=service%3Ahttp">HTTPS Services</a></td>
+                            </tr>
+                            <tr>
+                                <th>wildcard</th>
+                                <td>Fuzzy searching for any matching string from hostnames or services</td>
+                                <td><a href="/search?query=e">Searches matching the string "e"</a></td>
                             </tr>
         
                         </tbody>

@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Ullaakut/nmap/v3"
@@ -38,6 +39,7 @@ func Poll(ranges []string, db *ConcurrentMap, timeoutMinutes int) {
 			}
 
 			hostname, _ := Lookup(host.Addresses[0].String())
+			hostname = strings.ToLower(hostname)
 			tempMap[host.Addresses[0].String()] = []Scan{NewScan(host, hostname)}
 
 			addPortsIpToMap(&tempMap, NewScan(host, hostname))

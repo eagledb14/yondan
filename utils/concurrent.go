@@ -35,8 +35,12 @@ func (c *ConcurrentMap) Read(target string) ([]Scan, error) {
 func (c *ConcurrentMap) ReadAll() map[string][]Scan {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
-
-	return c.data
+	newMap := make(map[string][]Scan)
+	for k, v := range c.data {
+		newMap[k] = v
+	}
+	// return c.data
+	return newMap
 }
 
 func (c *ConcurrentMap) append(target string, scan Scan) {
