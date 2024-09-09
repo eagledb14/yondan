@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"net"
+	"fmt"
 	"regexp"
 	"strings"
 )
@@ -16,6 +17,7 @@ import (
 var cidrRe *regexp.Regexp = regexp.MustCompile(`^([0-9]{1,3}\.){3}[0-9]{1,3}(\/([0-9]|[1-2][0-9]|3[0-2]))?`)
 var netRe *regexp.Regexp = regexp.MustCompile(`^net:`)
 var queryRe *regexp.Regexp = regexp.MustCompile(`^[a-zA-z]+:.*`)
+var filterRe *regexp.Regexp = regexp.MustCompile(`^-`)
 
 func Query(params string, db *ConcurrentMap) ([]*Scan, error) {
 
@@ -29,6 +31,7 @@ func Query(params string, db *ConcurrentMap) ([]*Scan, error) {
 	queryCount := 0
 
 	re := regexp.MustCompile(`[,:]`)
+	filterRes := []string{}
 	for _, q := range queries {
 		res := []*Scan{}
 
@@ -43,6 +46,12 @@ func Query(params string, db *ConcurrentMap) ([]*Scan, error) {
 			params := re.Split(q, -1)
 			queryCount += len(params) - 1
 			res = parseQuery(params, db)
+		} else if filterRe.MatchString(q) { // This handles picking ips that should be filtered
+			fmt.Println(q)
+			filterQ, _ := Query(q[1:], db)
+			for _, query := range filterQ {
+				filterRes = append(filterRes, query.Ip)
+			}
 		} else {
 			queryCount ++
 			res = parseString(q, db)
@@ -50,10 +59,13 @@ func Query(params string, db *ConcurrentMap) ([]*Scan, error) {
 		queryScans = append(queryScans, res)
 	}
 
-	return filter(queryScans, queryCount, db), nil
+	foundQueries := filterQueriesCount(queryScans, queryCount, db)
+	return removeFilteredQueries(foundQueries, filterRes), nil
 }
 
-func filter(scans [][]*Scan, queryCount int, db *ConcurrentMap) []*Scan {
+// removes ips that are not in every query
+// so if there are 5 queries and the ip only shows up 3 times, then it removes the ip from the search
+func filterQueriesCount(scans [][]*Scan, queryCount int, db *ConcurrentMap) []*Scan {
 	ipCount := map[string]int{}
 
 	for _, scan := range scans {
@@ -70,6 +82,27 @@ func filter(scans [][]*Scan, queryCount int, db *ConcurrentMap) []*Scan {
 				continue
 			}
 			filteredScans = append(filteredScans, scan...)
+		}
+	}
+
+	return filteredScans
+}
+
+// removes ips that are to be removed from the query
+func removeFilteredQueries(scans []*Scan, filterScans []string) []*Scan{
+	filteredScans := []*Scan{}
+
+	for _, scan := range scans {
+		included := false
+		for _, filterHost := range filterScans {
+			if filterHost == scan.Ip {
+				included = true 
+				break
+			}
+		}
+
+		if included == false {
+			filteredScans = append(filteredScans, scan)
 		}
 	}
 

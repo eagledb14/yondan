@@ -11,12 +11,11 @@ import (
 func Populate(db *utils.ConcurrentMap) {
 	dummyRanges := []string{}
 	dummyScans := []*utils.Scan{}
+	intervalWait := 5
 
 	for range 200 {
 		dummyRanges = append(dummyRanges, getRandomCidr())
 	}
-
-	populateExamples(db)
 
 	ranges := readRanges()
 
@@ -26,7 +25,6 @@ func Populate(db *utils.ConcurrentMap) {
 		//loads custom flag data
 		flagData := readFlagData(db)
 		for _, data := range flagData {
-			
 			dummyScans = append(dummyScans, data)
 		}
 
@@ -38,7 +36,10 @@ func Populate(db *utils.ConcurrentMap) {
 			}
 		}
 
+		populateExamples(db)
+
 		fmt.Println("Full Scan Complete: db size", db.Len())
+		time.Sleep(time.Duration(intervalWait) * time.Minute)
 
 		for {
 			updateDummyRangeTime(dummyScans)
@@ -46,7 +47,7 @@ func Populate(db *utils.ConcurrentMap) {
 			fmt.Println("Scanning")
 			utils.Poll(ranges, db)
 			fmt.Println("Full Scan Complete: db size", db.Len())
-			time.Sleep(time.Duration(1) * time.Minute)
+			time.Sleep(time.Duration(intervalWait) * time.Minute)
 		}
 	}()
 }

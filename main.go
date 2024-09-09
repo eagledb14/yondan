@@ -34,7 +34,6 @@ func serv(port string, db *utils.ConcurrentMap) {
 
 		if len(scans) == 0 {
 			c.Redirect("/missing/" + params)
-			// return c.SendString(template.BuildPage(template.Missing(), params))
 		} else if len(scans) == 1 {
 			c.Redirect("/host/" + scans[0].Ip)
 		}
