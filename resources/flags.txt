@@ -1,0 +1,30 @@
+[
+	{
+		"ip": "36.45.10.107",
+		"hostname": "example-flags.com",
+		"ports": [
+			{
+				"id": 8080,
+				"service": "http"
+			},
+			{
+				"id": 92,
+				"service": "traceroute"
+			}
+		]
+	},
+	{
+		"ip": "8.8.8.8",
+		"hostname": "google.com",
+		"ports": [
+			{
+				"id": 443,
+				"service": "https"
+			},
+			{
+				"id": 8010,
+				"service": "fortinet"
+			}
+		]
+	}
+]

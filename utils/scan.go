@@ -25,9 +25,6 @@ func NewScan(host nmap.Host, hostname string) *Scan {
 	}
 }
 
-//Split the /24 into 16 subnets
-//scan each subnet every half hour
-//store results in db
 func Poll(ranges []string, db *ConcurrentMap) {
 	tempMap := make(map[string][]*Scan)
 	for _, cidr := range ranges {
