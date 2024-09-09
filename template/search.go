@@ -6,7 +6,7 @@ import (
 	"github.com/eagledb14/shodan-clone/utils"
 )
 
-func Search(scans []utils.Scan, query string) string {
+func Search(scans []*utils.Scan, query string) string {
     totalScan := len(scans)
     if query == "0.0.0.0/0" {
         totalScan = 69420
@@ -27,7 +27,7 @@ func Search(scans []utils.Scan, query string) string {
     }
 
     data := struct {
-        Scans []utils.Scan
+        Scans []*utils.Scan
         TotalScan int
         SortedPorts []sortedPorts
         SortedServices []sortedServices
@@ -92,7 +92,7 @@ type sortedPorts struct {
     Count int
 }
 
-func sortPorts(scans []utils.Scan) []sortedPorts {
+func sortPorts(scans []*utils.Scan) []sortedPorts {
     portCount := make(map[uint16]int)
 
     for _, scan := range scans {
@@ -119,7 +119,7 @@ type sortedServices struct {
     Count int
 }
 
-func sortServices(scans []utils.Scan) []sortedServices {
+func sortServices(scans []*utils.Scan) []sortedServices {
     serviceCount := make(map[string]int)
 
     for _, scan := range scans {

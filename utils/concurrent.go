@@ -8,20 +8,20 @@ import (
 
 // Writes probably won't scale well when getting to larger ip spaces, but it should be good enough for a /24
 type ConcurrentMap struct {
-	data map[string][]Scan
+	data map[string][]*Scan
 	mutex sync.RWMutex
 }
 
 func NewConcurrentMap() *ConcurrentMap {
 	newConcurrentMap := ConcurrentMap {
-		data: make(map[string][]Scan),
+		data: make(map[string][]*Scan),
 		mutex: sync.RWMutex{},
 	}
 
 	return &newConcurrentMap
 }
 
-func (c *ConcurrentMap) Read(target string) ([]Scan, error) {
+func (c *ConcurrentMap) Read(target string) ([]*Scan, error) {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
 
@@ -32,10 +32,10 @@ func (c *ConcurrentMap) Read(target string) ([]Scan, error) {
 	return run, nil
 }
 
-func (c *ConcurrentMap) ReadAll() map[string][]Scan {
+func (c *ConcurrentMap) ReadAll() map[string][]*Scan {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
-	newMap := make(map[string][]Scan)
+	newMap := make(map[string][]*Scan)
 	for k, v := range c.data {
 		newMap[k] = v
 	}
@@ -43,7 +43,7 @@ func (c *ConcurrentMap) ReadAll() map[string][]Scan {
 	return newMap
 }
 
-func (c *ConcurrentMap) append(target string, scan Scan) {
+func (c *ConcurrentMap) append(target string, scan *Scan) {
 	if _, ok := c.data[target]; ok {
 		for i, v := range c.data[target] {
 			if target == "" {
@@ -57,18 +57,31 @@ func (c *ConcurrentMap) append(target string, scan Scan) {
 		}
 		c.data[target] = append(c.data[target], scan)
 	} else {
-		c.data[target] = []Scan{scan}
+		c.data[target] = []*Scan{scan}
 	}
 }
 
-func (c *ConcurrentMap) Write(target string, run Scan) {
+func (c *ConcurrentMap) Write(target string, run *Scan) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
 	c.append(target, run)
 }
 
-func (c *ConcurrentMap) MassWrite(newMap *map[string][]Scan) {
+//returns true if the ip was already found from a scan, as to not rewrite it
+func (c *ConcurrentMap) DummyWrite(target string, run *Scan) bool {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	if _, ok := c.data[target]; ok {
+		return true
+	}
+
+	c.append(target, run)
+	return false
+}
+
+func (c *ConcurrentMap) MassWrite(newMap *map[string][]*Scan) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
@@ -83,6 +96,12 @@ func (c *ConcurrentMap) Delete(target string) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	delete(c.data, target)
+}
+
+func (c *ConcurrentMap) Drop() {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	c.data = map[string][]*Scan{}
 }
 
 func (c *ConcurrentMap) String() string {

@@ -4,10 +4,10 @@ import (
     "github.com/eagledb14/shodan-clone/utils"
 )
 
-func Host(scan utils.Scan , db *utils.ConcurrentMap) string {
+func Host(scan *utils.Scan , db *utils.ConcurrentMap) string {
 
     data := struct {
-        Scan utils.Scan
+        Scan *utils.Scan
     } {
         Scan: scan,
     }

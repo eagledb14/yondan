@@ -15,6 +15,8 @@ import (
 
 func Populate(db *utils.ConcurrentMap) {
 	dummyRanges := []string{}
+	dummyScans := []*utils.Scan{}
+
 	for range 200 {
 		dummyRanges = append(dummyRanges, getRandomCidr())
 	}
@@ -24,20 +26,23 @@ func Populate(db *utils.ConcurrentMap) {
 	ranges := readRanges()
 
 	go func() {
-		for _, cidr := range dummyRanges {
-			createDummyData(cidr, db)
-		}
+		utils.Poll(ranges, db)
 
-		utils.Poll(ranges, db, 0)
+		for _, cidr := range dummyRanges {
+			dummyData := createDummyData(cidr, db)
+			for _, data := range dummyData {
+				dummyScans = append(dummyScans, data)
+			}
+		}
 		fmt.Println("Full Scan Complete: db size", db.Len())
 
 		for {
-			for _, cidr := range dummyRanges {
-				createDummyData(cidr, db)
-			}
+			updateDummyRangeTime(dummyScans)
 
-			utils.Poll(ranges, db, 10)
+			fmt.Println("Scanning")
+			utils.Poll(ranges, db)
 			fmt.Println("Full Scan Complete: db size", db.Len())
+			time.Sleep(time.Duration(0) * time.Minute)
 		}
 	}()
 }
@@ -72,8 +77,9 @@ func getRandomCidr() string {
 	return cidr
 }
 
-func createDummyData(cidr string, db *utils.ConcurrentMap, url ...string) {
+func createDummyData(cidr string, db *utils.ConcurrentMap, url ...string) []*utils.Scan {
 	ip, ipNet, _ := net.ParseCIDR(cidr)
+	dummyData := []*utils.Scan{}
 
 	index := 0
 
@@ -92,15 +98,21 @@ func createDummyData(cidr string, db *utils.ConcurrentMap, url ...string) {
 			hostname = url[0]
 		}
 	
-		newScan := utils.Scan{Ip: ip.String(), Hostname: hostname,  Ports: ports, Timestamp: time.Now().Format("2006-01-02")}
+		newScan := &utils.Scan{Ip: ip.String(), Hostname: hostname,  Ports: ports, Timestamp: time.Now().Format("2006-01-02")}
+		dummyData = append(dummyData, newScan)
 
-		db.Write(ip.String(), newScan)
+		exists := db.DummyWrite(ip.String(), newScan)
+		if exists {
+			continue
+		}
 		db.Write(newScan.Hostname, newScan)
 		for _, port := range newScan.Ports {
 			db.Write(strconv.Itoa(int(port.ID)), newScan)
 			db.Write(port.Service.Name, newScan)
 		}
 	}
+
+	return dummyData
 }
 
 func incrementIP(ip net.IP) {
@@ -124,4 +136,10 @@ func getRandomPort() nmap.Port {
 func populateExamples(db *utils.ConcurrentMap) {
 	createDummyData("8.8.8.8/24", db)
 	createDummyData(getRandomCidr(), db, "example.com")
+}
+
+func updateDummyRangeTime(dummyScans []*utils.Scan) {
+	for _, s := range dummyScans {
+		s.Timestamp = time.Now().Format("2006-01-02")
+	}
 }

@@ -16,8 +16,8 @@ type Scan struct {
 	Timestamp string
 }
 
-func NewScan(host nmap.Host, hostname string) Scan {
-	return Scan {
+func NewScan(host nmap.Host, hostname string) *Scan {
+	return &Scan {
 		Ip: host.Addresses[0].String(),
 		Ports: host.Ports,
 		Hostname: hostname,
@@ -28,9 +28,9 @@ func NewScan(host nmap.Host, hostname string) Scan {
 //Split the /24 into 16 subnets
 //scan each subnet every half hour
 //store results in db
-func Poll(ranges []string, db *ConcurrentMap, timeoutMinutes int) {
+func Poll(ranges []string, db *ConcurrentMap) {
+	tempMap := make(map[string][]*Scan)
 	for _, cidr := range ranges {
-		tempMap := make(map[string][]Scan)
 		run, _ := nmapScan(cidr)
 
 		for _, host := range run.Hosts {
@@ -40,7 +40,7 @@ func Poll(ranges []string, db *ConcurrentMap, timeoutMinutes int) {
 
 			hostname, _ := Lookup(host.Addresses[0].String())
 			hostname = strings.ToLower(hostname)
-			tempMap[host.Addresses[0].String()] = []Scan{NewScan(host, hostname)}
+			tempMap[host.Addresses[0].String()] = []*Scan{NewScan(host, hostname)}
 
 			addPortsIpToMap(&tempMap, NewScan(host, hostname))
 			addDomainToMap(&tempMap, NewScan(host, hostname))
@@ -48,26 +48,25 @@ func Poll(ranges []string, db *ConcurrentMap, timeoutMinutes int) {
 			addProtocolToMap(&tempMap, NewScan(host, hostname))
 		}
 
-		db.MassWrite(&tempMap)
-		time.Sleep(time.Duration(timeoutMinutes) * time.Minute)
 	}
+	db.MassWrite(&tempMap)
 }
 
-func addPortsIpToMap(tempMap *map[string][]Scan, scan Scan) {
+func addPortsIpToMap(tempMap *map[string][]*Scan, scan *Scan) {
 	for _, port := range scan.Ports {
 		portStr := strconv.Itoa(int(port.ID))
 		(*tempMap)[portStr] = append((*tempMap)[portStr], scan)
 	}
 }
 
-func addDomainToMap(tempMap *map[string][]Scan, scan Scan) {
+func addDomainToMap(tempMap *map[string][]*Scan, scan *Scan) {
 	if scan.Hostname == "" {
 		return
 	}
 	(*tempMap)[scan.Hostname] = append((*tempMap)[scan.Hostname], scan)
 }
 
-func addServiceToMap(tempMap *map[string][]Scan, scan Scan) {
+func addServiceToMap(tempMap *map[string][]*Scan, scan *Scan) {
 	for _, port := range scan.Ports {
 		service := port.Service
 		if service.Name == "" {
@@ -77,7 +76,7 @@ func addServiceToMap(tempMap *map[string][]Scan, scan Scan) {
 	}
 }
 
-func addProtocolToMap(tempMap *map[string][]Scan, scan Scan) {
+func addProtocolToMap(tempMap *map[string][]*Scan, scan *Scan) {
 	for _, port := range scan.Ports {
 		protocol := port.Protocol
 		if protocol == "" {
@@ -94,12 +93,6 @@ func nmapScan(target ...string) (nmap.Run, error) {
 	scanner, err := nmap.NewScanner(
 		ctx,
 		nmap.WithTargets(target...),
-		// nmap.WithCustomArguments()
-		// nmap.WithMostCommonPorts(500),
-		// nmap.WithCustomArguments("-p-"),
-		// nmap.WithFastMode(),
-		// nmap.WithPorts("80,443,843"),
-		// nmap.WithCustomArguments("-Pn"),
 	)
 	
 	if err != nil {

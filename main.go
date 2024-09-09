@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"sort"
 	"strings"
+
 	"github.com/eagledb14/shodan-clone/template"
 	"github.com/eagledb14/shodan-clone/utils"
 	"github.com/gofiber/fiber/v2"
@@ -12,7 +14,7 @@ func main() {
 	db := utils.NewConcurrentMap()
 	Populate(db)
 
-	serv(":3000", db)
+	serv(":8080", db)
 }
 
 func serv(port string, db *utils.ConcurrentMap) {
@@ -72,6 +74,7 @@ func serv(port string, db *utils.ConcurrentMap) {
 	app.Static("/styles.css", "./resources/styles.css")
 	app.Static("/logo", "./resources/logo.png")
 
-	app.Listen(port)
+	err := app.Listen(port)
+	fmt.Println(err)
 }
 
