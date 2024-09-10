@@ -3,7 +3,6 @@ package utils
 import (
 	"errors"
 	"net"
-	"fmt"
 	"regexp"
 	"strings"
 )
@@ -47,7 +46,6 @@ func Query(params string, db *ConcurrentMap) ([]*Scan, error) {
 			queryCount += len(params) - 1
 			res = parseQuery(params, db)
 		} else if filterRe.MatchString(q) { // This handles picking ips that should be filtered
-			fmt.Println(q)
 			filterQ, _ := Query(q[1:], db)
 			for _, query := range filterQ {
 				filterRes = append(filterRes, query.Ip)
