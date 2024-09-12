@@ -26,7 +26,7 @@ func Query(params string, db *ConcurrentMap) ([]*Scan, error) {
 		return nil, errors.New("No queries provided")
 	}
 
-	queryScans := [][]*Scan{}
+	queryScans := map[string]int{}
 	queryCount := 0
 
 	re := regexp.MustCompile(`[,:]`)
@@ -54,7 +54,10 @@ func Query(params string, db *ConcurrentMap) ([]*Scan, error) {
 			queryCount ++
 			res = parseString(q, db)
 		}
-		queryScans = append(queryScans, res)
+
+		for _, scan := range res {
+			queryScans[scan.Ip]++
+		}
 	}
 
 	foundQueries := filterQueriesCount(queryScans, queryCount, db)
@@ -63,17 +66,11 @@ func Query(params string, db *ConcurrentMap) ([]*Scan, error) {
 
 // removes ips that are not in every query
 // so if there are 5 queries and the ip only shows up 3 times, then it removes the ip from the search
-func filterQueriesCount(scans [][]*Scan, queryCount int, db *ConcurrentMap) []*Scan {
-	ipCount := map[string]int{}
-
-	for _, scan := range scans {
-		for _, s := range scan {
-			ipCount[s.Ip]++
-		}
-	}
+// func filterQueriesCount(scans [][]*Scan, queryCount int, db *ConcurrentMap) []*Scan {
+func filterQueriesCount(scans map[string]int, queryCount int, db *ConcurrentMap) []*Scan {
 
 	filteredScans := []*Scan{}
-	for key, value := range ipCount {
+	for key, value := range scans {
 		if value == queryCount {
 			scan, err := db.Read(key)
 			if err != nil {

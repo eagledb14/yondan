@@ -8,10 +8,9 @@ import (
 	"time"
 )
 
-func Populate(db *utils.ConcurrentMap) {
+func Populate(db *utils.ConcurrentMap, intervalWait int) {
 	dummyRanges := []string{}
 	dummyScans := []*utils.Scan{}
-	intervalWait := 5
 
 	for range 200 {
 		dummyRanges = append(dummyRanges, getRandomCidr())
@@ -20,6 +19,7 @@ func Populate(db *utils.ConcurrentMap) {
 	ranges := readRanges()
 
 	go func() {
+		fmt.Println("Scanning")
 		utils.Poll(ranges, db)
 
 		//loads custom flag data

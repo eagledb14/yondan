@@ -6,17 +6,32 @@ import (
 	"strings"
 	"net"
 	"net/url"
+	"os"
+	"strconv"
 
 	"github.com/eagledb14/shodan-clone/template"
 	"github.com/eagledb14/shodan-clone/utils"
 	"github.com/gofiber/fiber/v2"
 )
 
+// arg[1] = timeout
+// arg[2] = port number
 func main() {
 	db := utils.NewConcurrentMap()
-	Populate(db)
 
-	serv(":8080", db)
+	default_port := "8080"
+	default_timeout := 5
+
+	if len(os.Args) == 2 {
+		default_port = os.Args[1]
+	} else if len(os.Args) == 3 {
+		default_port = os.Args[1]
+		default_timeout, _ = strconv.Atoi(os.Args[2])
+	}
+
+	Populate(db, default_timeout)
+
+	serv(":" + default_port, db)
 }
 
 func serv(port string, db *utils.ConcurrentMap) {
