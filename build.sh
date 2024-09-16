@@ -1,4 +1,4 @@
-GOOS=linux GOARCH=amd64 go build -o shodan-clone
+GOOS=linux GOARCH=amd64 go build -o yondan
 
-tar -czf shodan-clone.tar.gz shodan-clone resources
+tar -czf yondan.tar.gz yondan resources
 rm shodan-clone
