@@ -1,0 +1,4 @@
+google.com
+facebook.com
+amazon.com
+127.0.0.0/28
