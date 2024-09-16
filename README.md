@@ -14,7 +14,7 @@ GOOS=windows GOARCH=amd64
 
 Yondan has 2 args, the first is the port that it serves from, the default is port 8080. 
 
-The second arg is the interval that it scans the network in minutes. More aggressive intervals will create more noise for a SIM tool to find, though has no other purpose if you are not updating the network regularyl. The default value is 5 minutes.
+The second arg is the interval that it scans the network in minutes. More aggressive intervals will create more noise for a SIM tool to find, though has no other purpose if you are not updating the network regularly. The default value is 5 minutes.
 
 ```
 //runs default configurations
